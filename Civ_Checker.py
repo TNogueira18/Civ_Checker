@@ -1,9 +1,23 @@
-import tkinter
 from tkinter import *
 from tkinter import ttk, filedialog
 import sqlite3
+import json
 
 # Build Functions
+
+def Hide_Widgets():
+    # Hide Widgets
+    # Labels
+    Label01.place_forget()
+    Label01.place_forget()
+
+    # Butoons
+    Button01.place_forget()
+    Button02.place_forget()
+    Button03.place_forget()
+
+    # Tree
+    Tree_Frame.place_forget()
 
 def Enter_Widget(event):
     event.widget.config(background = "#75BFFD")
@@ -37,35 +51,39 @@ def Select_File():
     App.withdraw()
     File_Path = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
     App.deiconify()
-    return File_Path
+    with open(File_Path, 'r') as File_Readed:
+        File_Data = json.load(File_Readed)
+    return File_Data
 
-def Checker():
+def Check_Civ():
 
-    Data = Select_File()
+    Data_Json = Select_File()
+
+    Data_Database = Query()
 
     results = []
     results_stack = 0
     stacking_list = []
-    k = 0
+    counter00 = 0
 
-    while k < len(data["bonuses"][0]):
-        if "and" in data01[data["bonuses"][0][k]][3]:
-            slt = [data01[data["bonuses"][0][k]][3].split(" and ")]
-            c = 0
-            while c < len(slt[0]):
-                stacking_list += [slt[0][c]]
-                c += 1
+    while counter00 < len(Data_Json["bonuses"][0]):
+        if "and" in Data_Database[Data_Json["bonuses"][0][counter00]][3]:
+            Temporary_List_Splitted_Bonus = [Data_Database[Data_Json["bonuses"][0][counter00]][3].split(" and ")]
+            counter01 = 0
+            while counter01 < len(Temporary_List_Splitted_Bonus[0]):
+                stacking_list += [Temporary_List_Splitted_Bonus[0][counter01]]
+                counter01 += 1
         else:
-            stacking_list += [data01[data["bonuses"][0][k]][3]]
-        k += 1
+            stacking_list += [Data_Database[Data_Json["bonuses"][0][counter00]][3]]
+        counter00 += 1
 
-    for i in data["bonuses"][0]:
-        k = 0
+    for i in Data_Json["bonuses"][0]:
+        counter00 = 0
         while True:
-            if i+1 == data01[k][0]:
-                results += [data01[k][2]]
-            k += 1
-            if k == len(data01):
+            if i+1 == Data_Database[counter00][0]:
+                results += [Data_Database[counter00][2]]
+            counter00 += 1
+            if counter00 == len(Data_Database):
                 break
 
     results_stack = 0
@@ -101,9 +119,9 @@ def Checker():
     else:
         text01 = str(8 - (sum(results) + results_stack)) + " points left"
 
-    text02 = str(data["alias"] + "\n\n")
-    for i in data["bonuses"][0]:
-        text02 += str(data01[i][3] + ", ") + str(data01[i][2]) + ", " + str(data01[i][1] + "\n")
+    text02 = str(Data_Json["alias"] + "\n\n")
+    for i in Data_Json["bonuses"][0]:
+        text02 += str(Data_Database[i][3] + ", ") + str(Data_Database[i][2]) + ", " + str(Data_Database[i][1] + "\n")
 
     text02 += "\nStacking Penalty: " + str(results_stack)
 
@@ -111,25 +129,24 @@ def Checker():
         text01 = "This civ has got the one civ bonus which is ilegal, Long Swordsman, Two-Handed Swordsman upgrades available one age earlier"
 
     lb = [69, 70, 71, 72, 73]
-    for i in data["bonuses"][4]:
+    for i in Data_Json["bonuses"][4]:
         if i in lb:
             text01 = "This civ has one of the 5 unavalible Team Bonus"
             break
 
-
-    print(text01)
-    print(text02)
-
-def Check_Civ():
-    
-    Select_File()
+    print(text02 + "\n\n\n\n\n" + text01)
     
 
 def Home_Page():
+
+    # Hide Widgets
     
     # Config the Buttons
     Button01.config(text = "Database", command = Database)
     Button02.config(text = "Check Civ", command = Check_Civ)
+
+    # Config the Label
+    Label01.config(text = "Civ Checker")
 
     # Place Buttons
     Button01.place(relheight = 0.1, relwidth = 0.2, relx = 0.4, rely = 0.7)
@@ -156,34 +173,42 @@ window_y = int((screen_height - window_height) / 2)
 # Set window size and position
 App.geometry(f"{window_width}x{window_height}+{window_x}+{window_y}")
 
-# Create Label
-Label01 = Label(App, font = "Arial 50", justify = "center", foreground = "#0097FF", relief = "flat", text="Civ Checker")
+# Create Labels
+Label01 = Label(App, font = "Arial 50", justify = "center", foreground = "#0097FF", relief = "flat")
+Label02 = Label(App, font = "Arial 50", justify = "center", foreground = "#0097FF", relief = "flat")
 
 # Create Buttons
 Button01 = Button(App, background = "#0097FF", foreground = "#D9D9D9", activebackground = "#000CFF", activeforeground = "#D9D9D9", relief = "flat", font = "Arial 16")
 Button02 = Button(App, background = "#0097FF", foreground = "#D9D9D9", activebackground = "#000CFF", activeforeground = "#D9D9D9", relief = "flat", font = "Arial 16")
 Button03 = Button(App, background = "#0097FF", foreground = "#D9D9D9", activebackground = "#000CFF", activeforeground = "#D9D9D9", relief = "flat", font = "Arial 16")
 
+# Create Tree Frame
+Tree_Frame = Frame(App)
+
 # Create Treeview 
-tree = ttk.Treeview(App)
+Tree = ttk.Treeview(Tree_Frame)
 
 # Add columns
-tree["columns"] = ("Column01", "Column02", "Column03", "Column04")
-tree.column("#0", width=0, stretch = 0)
-tree.column("Column01", width=100)
-tree.column("Column02", width=100)
-tree.column("Column03", width=100)
-tree.column("Column04", width=100)
+Tree["columns"] = ("Column01", "Column02", "Column03", "Column04")
+Tree.column("#0", width=0, stretch = 0)
+Tree.column("Column01", width=100)
+Tree.column("Column02", width=100)
+Tree.column("Column03", width=100)
+Tree.column("Column04", width=100)
 
 # Add headings
-tree.heading("#0", text="")
-tree.heading("Column01", text="Bonus ID")
-tree.heading("Column02", text="Bonus Type")
-tree.heading("Column03", text="Bonus Cost")
-tree.heading("Column04", text="Bonus Description")
+Tree.heading("#0", text="")
+Tree.heading("Column01", text="Bonus ID")
+Tree.heading("Column02", text="Bonus Type")
+Tree.heading("Column03", text="Bonus Cost")
+Tree.heading("Column04", text="Bonus Description")
 
-tree.tag_configure("oddrow", background="#D9D9D9", foreground = "#0097FF")
-tree.tag_configure("evenrow", background="#0097FF", foreground = "#D9D9D9")
+# Configure stripped rows
+Tree.tag_configure("oddrow", background="#D9D9D9", foreground = "#0097FF")
+Tree.tag_configure("evenrow", background="#0097FF", foreground = "#D9D9D9")
+
+# Place the Tree in the Frame
+Tree.place(relheight = 1, relwidth = 1, relx = 0, rely = 0)
 
 """
 global count
