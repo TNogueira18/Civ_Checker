@@ -26,7 +26,7 @@ def Leave_Widget(event):
 
 def Query(Type):
     # Connect to the database (creates a new file if it doesn't exist)
-    conn = sqlite3.connect("\Civ_Checker\Database.db")
+    conn = sqlite3.connect("Database.db")
     Database_executer = conn.cursor()
 
     if Type == "Normal":
